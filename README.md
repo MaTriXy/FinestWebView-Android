@@ -7,16 +7,14 @@
 #### Beautiful and customizable Android Activity that shows web pages within an app.
 
 * Builder pattern
-* Various options
-* Material design
-* Pre-made icons
-* Custom themes
-* Transition animations
+* Material design & Pre-made icons
+* Custom themes & Custom transition animations
+* Support collapsing toolbar & contextual actionbar
+* SwipeRefreshLayout & Progressbar
 * Device rotation
-* Collapsing toolbar
 * Gradient divider
 * Custom typeface
-* Contextual actionbar
+* Supports Right to Left
 
 ## Screenshots
 <img src="https://github.com/TheFinestArtist/FinestWebView-Android/blob/master/art/screenshots.png?raw=true" width="888">
@@ -33,6 +31,18 @@
        src="https://github.com/TheFinestArtist/FinestWebView-Android/blob/master/art/youtube.png">
 </a>
 
+
+## Sample Project
+
+You can download the latest sample APK from this repo here: [sample-release.apk](https://github.com/TheFinestArtist/FinestWebView-Android/blob/master/sample/sample-release.apk?raw=true)
+
+It's also on Google Play:
+
+<a href="https://play.google.com/store/apps/details?id=com.thefinestartist.finestwebview.sample" target="_blank">
+  <img alt="Get it on Google Play"
+       src="https://developer.android.com/images/brand/en_generic_rgb_wo_60.png" />
+</a>
+
 ## Getting started
 
 #### Gradle Dependency (jcenter)
@@ -41,7 +51,7 @@ Easily reference the library in your Android projects using this dependency in y
 
 ```java
 dependencies {
-    compile 'com.thefinestartist:finestwebview:1.0.1'
+    compile 'com.thefinestartist:finestwebview:1.0.7'
 }
 ```
 
@@ -51,15 +61,19 @@ FinestWebView is basically and Android activity with webview, toolbar and etc.
 You have to add FinestWebViewActivity in your `AndroidManifest.xml`
 
 ```xml
+<uses-permission android:name="android.permission.INTERNET" />
+
 <activity
     android:name="com.thefinestartist.finestwebview.FinestWebViewActivity"
-    android:theme="@style/FinestWebViewTheme" />
+    android:configChanges="keyboardHidden|orientation|screenSize"
+    android:screenOrientation="sensor"
+    android:theme="@style/FinestWebViewTheme.Light" />
 ```
 
 #### Basic WebView
 
 ```java
-new FinestWebView.Builder(this).show(url);
+new FinestWebView.Builder(activity).show(url);
 ```
 
 
@@ -90,6 +104,16 @@ You can use your own Theme for FinestWebView. If you want to use pre-defined the
 
 ### 2. Builder Options
 
+**Right to Left Options**
+```java
+rtl(boolean rtl);
+```
+
+**Theme Options**
+```java
+theme(@StyleRes int theme);
+```
+
 **StatusBar Options**
 ```java
 statusBarColor(@ColorInt int color);
@@ -112,6 +136,15 @@ iconDisabledColorRes(@ColorRes int colorRes);
 iconPressedColor(@ColorInt int color);
 iconPressedColorRes(@ColorRes int colorRes);
 iconSelector(@DrawableRes int selectorRes);
+```
+
+**SwipeRefreshLayout Options**
+```java
+showSwipeRefreshLayout(boolean showSwipeRefreshLayout);
+swipeRefreshColor(@ColorInt int color);
+swipeRefreshColorRes(@ColorRes int colorRes);
+swipeRefreshColors(int[] colors);
+swipeRefreshColorsRes(@ArrayRes int colorsRes);
 ```
 
 **Divider Options**
@@ -178,6 +211,14 @@ menuTextFont(String menuTextFont);
 menuTextColor(@ColorInt int color);
 menuTextColorRes(@ColorRes int colorRes);
 
+menuTextGravity(int gravity);
+menuTextPaddingLeft(float menuTextPaddingLeft);
+menuTextPaddingLeft(int menuTextPaddingLeft);
+menuTextPaddingLeftRes(@DimenRes int menuTextPaddingLeft);
+menuTextPaddingRight(float menuTextPaddingRight);
+menuTextPaddingRight(int menuTextPaddingRight);
+menuTextPaddingRightRes(@DimenRes int menuTextPaddingRight);
+
 showMenuRefresh(boolean showMenuRefresh);
 stringResRefresh(@StringRes int stringResRefresh);
 showMenuShareVia(boolean showMenuShareVia);
@@ -190,14 +231,30 @@ stringResOpenWith(@StringRes int stringResOpenWith);
 
 **More Options**
 ```java
-setCloseAnimations(@AnimRes int animationCloseEnter, @AnimRes int animationCloseExit);
+setCustomAnimations(@AnimRes int animationOpenEnter,
+                    @AnimRes int animationOpenExit,
+                    @AnimRes int animationCloseEnter,
+                    @AnimRes int animationCloseExit)
 backPressToClose(boolean backPressToClose);
 stringResCopiedToClipboard(@StringRes int stringResCopiedToClipboard);
 ```
 
+**WebView Options**
+```java
+webViewJavaScriptEnabled(boolean webViewJavaScriptEnabled);
+webViewAppCacheEnabled(boolean webViewAppCacheEnabled);
+webViewAllowFileAccess(boolean webViewAllowFileAccess);
+webViewUseWideViewPort(boolean webViewUseWideViewPort);
+webViewLoadWithOverviewMode(boolean webViewLoadWithOverviewMode);
+webViewDomStorageEnabled(boolean webViewDomStorageEnabled);
+webViewDisplayZoomControls(boolean webViewDisplayZoomControls);
+webViewBuiltInZoomControls(boolean webViewBuiltInZoomControls);
+webViewDesktopMode(boolean webViewDesktopMode);
+```
+
 **Builder Pattern**
 ```java
-new FinestWebView.Builder(this)
+new FinestWebView.Builder(activity)
     .titleDefault("Default Title")
     .toolbarScrollFlags(AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS)
     .gradientDivider(false)
@@ -207,11 +264,11 @@ new FinestWebView.Builder(this)
     .iconDefaultColorRes(R.color.accent)
     .iconDisabledColorRes(R.color.gray)
     .iconPressedColorRes(R.color.black)
-    .progressBarHeight(DipPixelHelper.getPixel(this, 3))
+    .progressBarHeight(DipPixelHelper.getPixel(context, 3))
     .progressBarColorRes(R.color.accent)
     .backPressToClose(false)
+    .setCustomAnimations(R.anim.activity_open_enter, R.anim.activity_open_exit, R.anim.activity_close_enter, R.anim.activity_close_exit)
     .show(url);
-overridePendingTransition(R.anim.modal_activity_open_enter, R.anim.modal_activity_open_exit);
 ```
 
 
@@ -227,10 +284,14 @@ But, you can override theses settings using builder option `statusBarColor`, `st
 #### Disable Toolbar Collapsing
 
 ```java
-new FinestWebView.Builder(this)
+new FinestWebView.Builder(activity)
     .toolbarScrollFlags(0) // By sending as 0, toolbar collapsing will be disabled
     .show(url);
 ```
+
+
+#### Collapsing Toolbar vs WebView BuiltInZoomControls
+If you enable BuiltInZoomControls `webViewBuiltInZoomControls(true)`, it will automatically disable toolbar collapsing.
 
 
 #### Full Screen Mode
@@ -251,30 +312,19 @@ new FinestWebView.Builder(this)
 You can use some pre-defined animations from this library or your own animations.
 
 ```java
-new FinestWebView.Builder(this)
-    .setCloseAnimations(R.anim.activity_close_enter, R.anim.activity_close_exit)
+new FinestWebView.Builder(activity)
+    .setCustomAnimations(R.anim.activity_open_enter, R.anim.activity_open_exit, R.anim.activity_close_enter, R.anim.activity_close_exit)
     .show(url);
-overridePendingTransition(R.anim.activity_open_enter, R.anim.activity_open_exit);
 ```
 
 Pre-defined animation sets
-```xml
-activity_open_enter.xml
-activity_open_exit.xml
-activity_close_enter.xml
-activity_close_exit.xml
-```
-```xml
-modal_activity_open_enter.xml
-modal_activity_open_exit.xml
-modal_activity_close_enter.xml
-modal_activity_close_exit.xml
-```
-```xml
-fragment_open_enter.xml
-fragment_open_enter_reverse.xml
-fragment_close_enter.xml
-fragment_close_enter_reverse.xml
+
+```java
+.setCustomAnimations(R.anim.activity_open_enter, R.anim.activity_open_exit, R.anim.activity_close_enter, R.anim.activity_close_exit)
+.setCustomAnimations(R.anim.fragment_open_enter, R.anim.fragment_open_exit, R.anim.fragment_close_enter, R.anim.fragment_close_exit)
+.setCustomAnimations(R.anim.slide_up, R.anim.hold, R.anim.hold, R.anim.slide_down)
+.setCustomAnimations(R.anim.slide_left_in, R.anim.hold, R.anim.hold, R.anim.slide_right_out)
+.setCustomAnimations(R.anim.fade_in_fast, R.anim.fade_out_medium, R.anim.fade_in_medium, R.anim.fade_out_fast)
 ```
 
 
@@ -290,30 +340,44 @@ Use configChange, screenOrientation to customize your orientation options
     android:theme="@style/FinestWebViewTheme" />
 ```
 
-
 #### Gradient Divider
 
 You can make your divider gradient. If you do, webview will be under the gradient. If you disable gradient divider, webview will be below the divider.
 
 ```java
-new FinestWebView.Builder(this)
+new FinestWebView.Builder(activity)
     .gradientDivider(false)
     .show(url);
 ```
 
 
-#### Custom Tyface
+#### Custom Typeface
 
-You can use your own typeface for title, url, and menus. You have to add your font file in assets/fonts folder.
+You can use your own typeface for title, url, and menus. You have to add your font file in `assets/fonts` folder.
 
 ```java
-new FinestWebView.Builder(this)
+new FinestWebView.Builder(activity)
     .titleFont("Roboto-Medium.ttf")
     .urlFont("Roboto-Regular.ttf")
     .menuTextFont("Roboto-Medium.ttf")
     .show(url);
 ```
 
+#### Right to Left
+
+You can support right to left by setting `android:supportsRtl="true"` in `AndroidManifest.xml` or `rtl(true)`.
+
+```xml
+<application
+    ...
+    android:supportsRtl="true">
+</application>
+```
+```java
+new FinestWebView.Builder(activity)
+    .rtl(true)
+    .show(url);
+```
 
 ## Designer
 

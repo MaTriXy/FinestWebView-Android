@@ -16,10 +16,11 @@ import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.NestedScrollView;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -52,6 +53,9 @@ import com.thefinestartist.finestwebview.views.ShadowLayout;
  */
 public class FinestWebViewActivity extends AppCompatActivity implements AppBarLayout.OnOffsetChangedListener {
 
+    protected boolean rtl;
+    protected int theme;
+
     protected int statusBarColor;
 
     protected int toolbarColor;
@@ -61,6 +65,10 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
     protected int iconDisabledColor;
     protected int iconPressedColor;
     protected int iconSelector;
+
+    protected boolean showSwipeRefreshLayout;
+    protected int swipeRefreshColor;
+    protected int[] swipeRefreshColors;
 
     protected boolean showDivider;
     protected boolean gradientDivider;
@@ -92,6 +100,10 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
     protected String menuTextFont;
     protected int menuTextColor;
 
+    protected int menuTextGravity;
+    protected float menuTextPaddingLeft;
+    protected float menuTextPaddingRight;
+
     protected boolean showMenuRefresh;
     protected int stringResRefresh;
     protected boolean showMenuShareVia;
@@ -107,6 +119,16 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
     protected boolean backPressToClose;
     protected int stringResCopiedToClipboard;
 
+    protected boolean webViewJavaScriptEnabled;
+    protected boolean webViewAppCacheEnabled;
+    protected boolean webViewAllowFileAccess;
+    protected boolean webViewUseWideViewPort;
+    protected boolean webViewLoadWithOverviewMode;
+    protected boolean webViewDomStorageEnabled;
+    protected boolean webViewBuiltInZoomControls;
+    protected boolean webViewDisplayZoomControls;
+    protected boolean webViewDesktopMode;
+
     protected String url;
 
     protected void getOptions() {
@@ -120,13 +142,22 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
                 R.attr.colorPrimary,
                 R.attr.colorAccent,
                 android.R.attr.textColorPrimary,
-                android.R.attr.textColorSecondary});
+                android.R.attr.textColorSecondary,
+                android.R.attr.selectableItemBackground,
+                android.R.attr.selectableItemBackgroundBorderless});
         int colorPrimaryDark = a.getColor(0, ContextCompat.getColor(this, R.color.finestGray));
         int colorPrimary = a.getColor(1, ContextCompat.getColor(this, R.color.finestWhite));
         int colorAccent = a.getColor(2, ContextCompat.getColor(this, R.color.finestBlack));
         int textColorPrimary = a.getColor(3, ContextCompat.getColor(this, R.color.finestBlack));
         int textColorSecondary = a.getColor(4, ContextCompat.getColor(this, R.color.finestSilver));
+        int selectableItemBackground = Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB ?
+                a.getResourceId(5, 0) : R.drawable.selector_light_theme;
+        int selectableItemBackgroundBorderless = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ?
+                a.getResourceId(6, 0) : R.drawable.selector_light_theme;
         a.recycle();
+
+        rtl = intent.getBooleanExtra("rtl", getResources().getBoolean(R.bool.is_right_to_left));
+        theme = intent.getIntExtra("theme", 0);
 
         statusBarColor = intent.getIntExtra("statusBarColor", colorPrimaryDark);
 
@@ -137,7 +168,11 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
         iconDefaultColor = intent.getIntExtra("iconDefaultColor", colorAccent);
         iconDisabledColor = intent.getIntExtra("iconDisabledColor", ColorHelper.disableColor(iconDefaultColor));
         iconPressedColor = intent.getIntExtra("iconPressedColor", iconDefaultColor);
-        iconSelector = intent.getIntExtra("iconSelector", R.drawable.selector_grey);
+        iconSelector = intent.getIntExtra("iconSelector", selectableItemBackgroundBorderless);
+
+        showSwipeRefreshLayout = intent.getBooleanExtra("showSwipeRefreshLayout", true);
+        swipeRefreshColor = intent.getIntExtra("swipeRefreshColor", colorAccent);
+        swipeRefreshColors = intent.getIntArrayExtra("swipeRefreshColors");
 
         showDivider = intent.getBooleanExtra("showDivider", true);
         gradientDivider = intent.getBooleanExtra("gradientDivider", true);
@@ -163,11 +198,17 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
         menuColor = intent.getIntExtra("menuColor", ContextCompat.getColor(this, R.color.finestWhite));
         menuDropShadowColor = intent.getIntExtra("menuDropShadowColor", ContextCompat.getColor(this, R.color.finestBlack10));
         menuDropShadowSize = intent.getFloatExtra("menuDropShadowSize", getResources().getDimension(R.dimen.defaultMenuDropShadowSize));
-        menuSelector = intent.getIntExtra("menuSelector", R.drawable.selector_grey);
+        menuSelector = intent.getIntExtra("menuSelector", selectableItemBackground);
 
         menuTextSize = intent.getFloatExtra("menuTextSize", getResources().getDimension(R.dimen.defaultMenuTextSize));
         menuTextFont = intent.getStringExtra("menuTextFont") == null ? "Roboto-Regular.ttf" : intent.getStringExtra("menuTextFont");
         menuTextColor = intent.getIntExtra("menuTextColor", ContextCompat.getColor(this, R.color.finestBlack));
+
+        menuTextGravity = intent.getIntExtra("menuTextGravity", Gravity.CENTER_VERTICAL | Gravity.START);
+        menuTextPaddingLeft = intent.getFloatExtra("menuTextPaddingLeft",
+                rtl ? getResources().getDimension(R.dimen.defaultMenuTextPaddingRight) : getResources().getDimension(R.dimen.defaultMenuTextPaddingLeft));
+        menuTextPaddingRight = intent.getFloatExtra("menuTextPaddingRight",
+                rtl ? getResources().getDimension(R.dimen.defaultMenuTextPaddingLeft) : getResources().getDimension(R.dimen.defaultMenuTextPaddingRight));
 
         showMenuRefresh = intent.getBooleanExtra("showMenuRefresh", true);
         stringResRefresh = intent.getIntExtra("stringResRefresh", R.string.refresh);
@@ -183,6 +224,16 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
 
         backPressToClose = intent.getBooleanExtra("backPressToClose", false);
         stringResCopiedToClipboard = intent.getIntExtra("stringResCopiedToClipboard", R.string.copied_to_clipboard);
+
+        webViewJavaScriptEnabled = intent.getBooleanExtra("webViewJavaScriptEnabled", true);
+        webViewAppCacheEnabled = intent.getBooleanExtra("webViewAppCacheEnabled", true);
+        webViewAllowFileAccess = intent.getBooleanExtra("webViewAllowFileAccess", true);
+        webViewUseWideViewPort = intent.getBooleanExtra("webViewUseWideViewPort", true);
+        webViewLoadWithOverviewMode = intent.getBooleanExtra("webViewLoadWithOverviewMode", true);
+        webViewDomStorageEnabled = intent.getBooleanExtra("webViewDomStorageEnabled", true);
+        webViewBuiltInZoomControls = intent.getBooleanExtra("webViewBuiltInZoomControls", false);
+        webViewDisplayZoomControls = intent.getBooleanExtra("webViewDisplayZoomControls", false);
+        webViewDesktopMode = intent.getBooleanExtra("webViewDesktopMode", false);
 
         url = intent.getStringExtra("url");
     }
@@ -201,7 +252,7 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
     protected ImageButton forward;
     protected ImageButton more;
 
-    protected NestedScrollView nestedScrollView;
+    protected SwipeRefreshLayout swipeRefreshLayout;
     protected WebView webView;
 
     protected View gradient;
@@ -236,7 +287,7 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
         forward = (ImageButton) findViewById(R.id.forward);
         more = (ImageButton) findViewById(R.id.more);
 
-        nestedScrollView = (NestedScrollView) findViewById(R.id.nestedScrollView);
+        swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
         webView = (WebView) findViewById(R.id.webView);
 
         gradient = findViewById(R.id.gradient);
@@ -285,10 +336,10 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
         }
 
         { // Icons
-            updateIcon(close, R.drawable.close);
+            updateIcon(close, rtl ? R.drawable.more : R.drawable.close);
             updateIcon(back, R.drawable.back);
             updateIcon(forward, R.drawable.forward);
-            updateIcon(more, R.drawable.more);
+            updateIcon(more, rtl ? R.drawable.close : R.drawable.more);
         }
 
         { // Divider
@@ -354,6 +405,7 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
             title.setTypeface(TypefaceHelper.get(this, titleFont));
             title.setTextColor(titleColor);
 
+            urlTv.setVisibility(showUrl ? View.VISIBLE : View.GONE);
             urlTv.setText(UrlParser.getHost(url));
             urlTv.setTextSize(TypedValue.COMPLEX_UNIT_PX, urlSize);
             urlTv.setTypeface(TypefaceHelper.get(this, urlFont));
@@ -373,24 +425,73 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
                 more.setVisibility(View.GONE);
         }
 
-        { // Content
+        { // WebView
             webView.setWebChromeClient(new MyWebChromeClient());
             webView.setWebViewClient(new MyWebViewClient());
-//            webView.getSettings().setUseWideViewPort(true);
-//            webView.setInitialScale(100);
-//            webView.getSettings().setUseWideViewPort(true);
+
+            webView.getSettings().setJavaScriptEnabled(webViewJavaScriptEnabled);
+            webView.getSettings().setAppCacheEnabled(webViewAppCacheEnabled);
+            webView.getSettings().setAllowFileAccess(webViewAllowFileAccess);
+            webView.getSettings().setUseWideViewPort(webViewUseWideViewPort);
+            webView.getSettings().setLoadWithOverviewMode(webViewLoadWithOverviewMode);
+            webView.getSettings().setDomStorageEnabled(webViewDomStorageEnabled);
+
+//            // Other webview options
+//            webView.getSettings().setLoadWithOverviewMode(true);
+//            webView.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
+//            webView.setScrollbarFadingEnabled(false);
 //            webView.getSettings().setBuiltInZoomControls(true);
-//            webView.getSettings().setSupportZoom(true);
+//            //Additional Webview Properties
 //            webView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
-//            webView.getSettings().setAllowFileAccess(true);
-//            webView.getSettings().setDomStorageEnabled(true);
-            webView.getSettings().setJavaScriptEnabled(true);
-            webView.getSettings().setAppCacheEnabled(true);
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-//                webView.getSettings().setDisplayZoomControls(false);
-//            else
-//                webView.getSettings().setBuiltInZoomControls(false);
+//            webView.getSettings().setDatabaseEnabled(true);
+//            webView.getSettings().setAllowUniversalAccessFromFileURLs(true);
+//            webView.getSettings().setLayoutAlgorithm(webView.getSettings().getLayoutAlgorithm().NORMAL);
+//            webView.getSettings().setLoadWithOverviewMode(true);
+//            webView.getSettings().setUseWideViewPort(false);
+//            webView.setSoundEffectsEnabled(true);
+//            webView.setHorizontalFadingEdgeEnabled(false);
+//            webView.setKeepScreenOn(true);
+//            webView.setScrollbarFadingEnabled(true);
+//            webView.setVerticalFadingEdgeEnabled(false);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+                webView.getSettings().setDisplayZoomControls(webViewDisplayZoomControls);
+
+            webView.getSettings().setBuiltInZoomControls(webViewBuiltInZoomControls);
+            if (webViewBuiltInZoomControls) {
+                // Remove NestedScrollView to enable BuiltInZoomControls
+                ((ViewGroup) webView.getParent()).removeAllViews();
+                swipeRefreshLayout.addView(webView);
+                swipeRefreshLayout.removeViewAt(1);
+            }
+
+            if (webViewDesktopMode)
+                webView.getSettings().setUserAgentString("Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.4) Gecko/20100101 Firefox/4.0");
+
             webView.loadUrl(url);
+        }
+
+        { // SwipeRefreshLayout
+            swipeRefreshLayout.setEnabled(showSwipeRefreshLayout);
+            if (showSwipeRefreshLayout) {
+                swipeRefreshLayout.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        swipeRefreshLayout.setRefreshing(true);
+                    }
+                });
+            }
+
+            if (swipeRefreshColors == null)
+                swipeRefreshLayout.setColorSchemeColors(swipeRefreshColor);
+            else swipeRefreshLayout.setColorSchemeColors(swipeRefreshColors);
+
+            swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    webView.reload();
+                }
+            });
         }
 
         { // Divider
@@ -442,7 +543,6 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
                     break;
             }
             progressBar.setLayoutParams(params);
-            progressBar.setProgress(30);
         }
 
         { // Menu
@@ -457,38 +557,48 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
             shadowLayout.setShadowColor(menuDropShadowColor);
             shadowLayout.setShadowSize(menuDropShadowSize);
 
-            RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) shadowLayout.getLayoutParams();
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             int margin = (int) (getResources().getDimension(R.dimen.defaultMenuLayoutMargin) - menuDropShadowSize);
             params.setMargins(0, margin, margin, 0);
+            params.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+            params.addRule(rtl ? RelativeLayout.ALIGN_PARENT_LEFT : RelativeLayout.ALIGN_PARENT_RIGHT);
             shadowLayout.setLayoutParams(params);
 
             menuRefresh.setVisibility(showMenuRefresh ? View.VISIBLE : View.GONE);
             menuRefresh.setBackgroundResource(menuSelector);
+            menuRefresh.setGravity(menuTextGravity);
             menuRefreshTv.setText(stringResRefresh);
             menuRefreshTv.setTextSize(TypedValue.COMPLEX_UNIT_PX, menuTextSize);
             menuRefreshTv.setTypeface(TypefaceHelper.get(this, menuTextFont));
             menuRefreshTv.setTextColor(menuTextColor);
+            menuRefreshTv.setPadding((int) menuTextPaddingLeft, 0, (int) menuTextPaddingRight, 0);
 
             menuShareVia.setVisibility(showMenuShareVia ? View.VISIBLE : View.GONE);
             menuShareVia.setBackgroundResource(menuSelector);
+            menuShareVia.setGravity(menuTextGravity);
             menuShareViaTv.setText(stringResShareVia);
             menuShareViaTv.setTextSize(TypedValue.COMPLEX_UNIT_PX, menuTextSize);
             menuShareViaTv.setTypeface(TypefaceHelper.get(this, menuTextFont));
             menuShareViaTv.setTextColor(menuTextColor);
+            menuShareViaTv.setPadding((int) menuTextPaddingLeft, 0, (int) menuTextPaddingRight, 0);
 
             menuCopyLink.setVisibility(showMenuCopyLink ? View.VISIBLE : View.GONE);
             menuCopyLink.setBackgroundResource(menuSelector);
+            menuCopyLink.setGravity(menuTextGravity);
             menuCopyLinkTv.setText(stringResCopyLink);
             menuCopyLinkTv.setTextSize(TypedValue.COMPLEX_UNIT_PX, menuTextSize);
             menuCopyLinkTv.setTypeface(TypefaceHelper.get(this, menuTextFont));
             menuCopyLinkTv.setTextColor(menuTextColor);
+            menuCopyLinkTv.setPadding((int) menuTextPaddingLeft, 0, (int) menuTextPaddingRight, 0);
 
             menuOpenWith.setVisibility(showMenuOpenWith ? View.VISIBLE : View.GONE);
             menuOpenWith.setBackgroundResource(menuSelector);
+            menuOpenWith.setGravity(menuTextGravity);
             menuOpenWithTv.setText(stringResOpenWith);
             menuOpenWithTv.setTextSize(TypedValue.COMPLEX_UNIT_PX, menuTextSize);
             menuOpenWithTv.setTypeface(TypefaceHelper.get(this, menuTextFont));
             menuOpenWithTv.setTextColor(menuTextColor);
+            menuOpenWithTv.setPadding((int) menuTextPaddingLeft, 0, (int) menuTextPaddingRight, 0);
         }
     }
 
@@ -523,8 +633,9 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.finest_web_view);
         getOptions();
+        if (theme != 0) setTheme(theme);
+        setContentView(R.layout.finest_web_view);
         bindViews();
         layoutViews();
         initializeViews();
@@ -532,7 +643,9 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
 
     @Override
     public void onBackPressed() {
-        if (backPressToClose || !webView.canGoBack()) {
+        if (menuLayout.getVisibility() == View.VISIBLE) {
+            hideMenu();
+        } else if (backPressToClose || !webView.canGoBack()) {
             close();
         } else {
             webView.goBack();
@@ -542,13 +655,17 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
     public void onClick(View view) {
         int viewId = view.getId();
         if (viewId == R.id.close) {
-            close();
+            if (rtl) showMenu();
+            else close();
         } else if (viewId == R.id.back) {
-            webView.goBack();
+            if (rtl) webView.goForward();
+            else webView.goBack();
         } else if (viewId == R.id.forward) {
-            webView.goForward();
+            if (rtl) webView.goBack();
+            else webView.goForward();
         } else if (viewId == R.id.more) {
-            showMenu();
+            if (rtl) close();
+            else showMenu();
         } else if (viewId == R.id.menuLayout) {
             hideMenu();
         } else if (viewId == R.id.menuRefresh) {
@@ -651,12 +768,35 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
                 break;
         }
 
-        ViewHelper.setTranslationY(menuLayout, Math.max(verticalOffset, -getResources().getDimension(R.dimen.defaultMenuLayoutMargin)));
+        if (menuLayout.getVisibility() == View.VISIBLE
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+            ViewHelper.setTranslationY(menuLayout, Math.max(verticalOffset, -getResources().getDimension(R.dimen.defaultMenuLayoutMargin)));
     }
 
     public class MyWebChromeClient extends WebChromeClient {
+
         @Override
         public void onProgressChanged(WebView view, int progress) {
+            if (showSwipeRefreshLayout) {
+                if (swipeRefreshLayout.isRefreshing() && progress == 100) {
+                    swipeRefreshLayout.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            swipeRefreshLayout.setRefreshing(false);
+                        }
+                    });
+                }
+
+                if (!swipeRefreshLayout.isRefreshing() && progress != 100) {
+                    swipeRefreshLayout.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            swipeRefreshLayout.setRefreshing(true);
+                        }
+                    });
+                }
+            }
+
             if (progress == 100)
                 progress = 0;
             progressBar.setProgress(progress);
@@ -680,8 +820,8 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
             if (view.canGoBack() || view.canGoForward()) {
                 back.setVisibility(View.VISIBLE);
                 forward.setVisibility(View.VISIBLE);
-                back.setEnabled(view.canGoBack());
-                forward.setEnabled(view.canGoForward());
+                back.setEnabled(rtl ? view.canGoForward() : view.canGoBack());
+                forward.setEnabled(rtl ? view.canGoBack() : view.canGoForward());
             } else {
                 back.setVisibility(View.GONE);
                 forward.setVisibility(View.GONE);
@@ -724,5 +864,12 @@ public class FinestWebViewActivity extends AppCompatActivity implements AppBarLa
         } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
             layoutViews();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (webView != null)
+            webView.destroy();
     }
 }

@@ -4,12 +4,14 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.AnimRes;
+import android.support.annotation.ArrayRes;
 import android.support.annotation.ColorInt;
 import android.support.annotation.ColorRes;
 import android.support.annotation.DimenRes;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
+import android.support.annotation.StyleRes;
 import android.support.design.widget.AppBarLayout.LayoutParams.ScrollFlags;
 import android.support.v4.content.ContextCompat;
 
@@ -25,6 +27,9 @@ public class FinestWebView {
 
         private Activity activity;
 
+        protected Boolean rtl;
+        protected Integer theme;
+
         protected Integer statusBarColor;
 
         protected Integer toolbarColor;
@@ -34,6 +39,10 @@ public class FinestWebView {
         protected Integer iconDisabledColor;
         protected Integer iconPressedColor;
         protected Integer iconSelector;
+
+        protected Boolean showSwipeRefreshLayout;
+        protected Integer swipeRefreshColor;
+        protected Integer[] swipeRefreshColors;
 
         protected Boolean showDivider;
         protected Boolean gradientDivider;
@@ -65,6 +74,10 @@ public class FinestWebView {
         protected String menuTextFont;
         protected Integer menuTextColor;
 
+        protected Integer menuTextGravity;
+        protected Float menuTextPaddingLeft;
+        protected Float menuTextPaddingRight;
+
         protected Boolean showMenuRefresh;
         protected Integer stringResRefresh;
         protected Boolean showMenuShareVia;
@@ -82,16 +95,30 @@ public class FinestWebView {
         protected Boolean backPressToClose;
         protected Integer stringResCopiedToClipboard;
 
+        protected Boolean webViewJavaScriptEnabled;
+        protected Boolean webViewAppCacheEnabled;
+        protected Boolean webViewAllowFileAccess;
+        protected Boolean webViewUseWideViewPort;
+        protected Boolean webViewLoadWithOverviewMode;
+        protected Boolean webViewDomStorageEnabled;
+        protected Boolean webViewBuiltInZoomControls;
+        protected Boolean webViewDisplayZoomControls;
+        protected Boolean webViewDesktopMode;
+
         protected String url;
 
-        @Deprecated
-        public Builder(@NonNull Context context) {
-            if (context instanceof Activity)
-                this.activity = (Activity) context;
+        public Builder rtl(boolean rtl) {
+            this.rtl = rtl;
+            return this;
         }
 
         public Builder(@NonNull Activity activity) {
             this.activity = activity;
+        }
+
+        public Builder theme(@StyleRes int theme) {
+            this.theme = theme;
+            return this;
         }
 
         public Builder statusBarColor(@ColorInt int color) {
@@ -154,6 +181,34 @@ public class FinestWebView {
             return this;
         }
 
+        public Builder showSwipeRefreshLayout(boolean showSwipeRefreshLayout) {
+            this.showSwipeRefreshLayout = showSwipeRefreshLayout;
+            return this;
+        }
+
+        public Builder swipeRefreshColor(@ColorInt int color) {
+            this.swipeRefreshColor = color;
+            return this;
+        }
+
+        public Builder swipeRefreshColorRes(@ColorRes int colorRes) {
+            this.swipeRefreshColor = ContextCompat.getColor(activity, colorRes);
+            return this;
+        }
+
+        public Builder swipeRefreshColors(int[] colors) {
+            Integer[] swipeRefreshColors = new Integer[colors.length];
+            for (int i = 0; i < colors.length; i++)
+                swipeRefreshColors[i] = colors[i];
+            this.swipeRefreshColors = swipeRefreshColors;
+            return this;
+        }
+
+        public Builder swipeRefreshColorsRes(@ArrayRes int colorsRes) {
+            int[] colors = activity.getResources().getIntArray(colorsRes);
+            return swipeRefreshColors(colors);
+        }
+
         public Builder showDivider(boolean showDivider) {
             this.showDivider = showDivider;
             return this;
@@ -185,7 +240,7 @@ public class FinestWebView {
         }
 
         public Builder dividerHeightRes(@DimenRes int height) {
-            this.dividerHeight = DipPixelHelper.getPixel(activity, height);
+            this.dividerHeight = activity.getResources().getDimension(height);
             return this;
         }
 
@@ -215,7 +270,7 @@ public class FinestWebView {
         }
 
         public Builder progressBarHeightRes(@DimenRes int height) {
-            this.progressBarHeight = DipPixelHelper.getPixel(activity, height);
+            this.progressBarHeight = activity.getResources().getDimension(height);
             return this;
         }
 
@@ -250,7 +305,7 @@ public class FinestWebView {
         }
 
         public Builder titleSizeRes(@DimenRes int titleSize) {
-            this.titleSize = DipPixelHelper.getPixel(activity, titleSize);
+            this.titleSize = activity.getResources().getDimension(titleSize);
             return this;
         }
 
@@ -285,7 +340,7 @@ public class FinestWebView {
         }
 
         public Builder urlSizeRes(@DimenRes int urlSize) {
-            this.urlSize = DipPixelHelper.getPixel(activity, urlSize);
+            this.urlSize = activity.getResources().getDimension(urlSize);
             return this;
         }
 
@@ -314,6 +369,41 @@ public class FinestWebView {
             return this;
         }
 
+        public Builder menuTextGravity(int gravity) {
+            this.menuTextGravity = gravity;
+            return this;
+        }
+
+        public Builder menuTextPaddingLeft(float menuTextPaddingLeft) {
+            this.menuTextPaddingLeft = menuTextPaddingLeft;
+            return this;
+        }
+
+        public Builder menuTextPaddingLeft(int menuTextPaddingLeft) {
+            this.menuTextPaddingLeft = (float) menuTextPaddingLeft;
+            return this;
+        }
+
+        public Builder menuTextPaddingLeftRes(@DimenRes int menuTextPaddingLeft) {
+            this.menuTextPaddingLeft = activity.getResources().getDimension(menuTextPaddingLeft);
+            return this;
+        }
+
+        public Builder menuTextPaddingRight(float menuTextPaddingRight) {
+            this.menuTextPaddingRight = menuTextPaddingRight;
+            return this;
+        }
+
+        public Builder menuTextPaddingRight(int menuTextPaddingRight) {
+            this.menuTextPaddingRight = (float) menuTextPaddingRight;
+            return this;
+        }
+
+        public Builder menuTextPaddingRightRes(@DimenRes int menuTextPaddingRight) {
+            this.menuTextPaddingRight = activity.getResources().getDimension(menuTextPaddingRight);
+            return this;
+        }
+
         public Builder menuDropShadowColor(@ColorInt int color) {
             this.menuDropShadowColor = color;
             return this;
@@ -335,7 +425,7 @@ public class FinestWebView {
         }
 
         public Builder menuDropShadowSizeRes(@DimenRes int menuDropShadowSize) {
-            this.menuDropShadowSize = DipPixelHelper.getPixel(activity, menuDropShadowSize);
+            this.menuDropShadowSize = activity.getResources().getDimension(menuDropShadowSize);
             return this;
         }
 
@@ -355,7 +445,7 @@ public class FinestWebView {
         }
 
         public Builder menuTextSizeRes(@DimenRes int menuTextSize) {
-            this.menuTextSize = DipPixelHelper.getPixel(activity, menuTextSize);
+            this.menuTextSize = activity.getResources().getDimension(menuTextSize);
             return this;
         }
 
@@ -445,6 +535,51 @@ public class FinestWebView {
             return this;
         }
 
+        public Builder webViewJavaScriptEnabled(boolean webViewJavaScriptEnabled) {
+            this.webViewJavaScriptEnabled = webViewJavaScriptEnabled;
+            return this;
+        }
+
+        public Builder webViewAppCacheEnabled(boolean webViewAppCacheEnabled) {
+            this.webViewAppCacheEnabled = webViewAppCacheEnabled;
+            return this;
+        }
+
+        public Builder webViewAllowFileAccess(boolean webViewAllowFileAccess) {
+            this.webViewAllowFileAccess = webViewAllowFileAccess;
+            return this;
+        }
+
+        public Builder webViewUseWideViewPort(boolean webViewUseWideViewPort) {
+            this.webViewUseWideViewPort = webViewUseWideViewPort;
+            return this;
+        }
+
+        public Builder webViewLoadWithOverviewMode(boolean webViewLoadWithOverviewMode) {
+            this.webViewLoadWithOverviewMode = webViewLoadWithOverviewMode;
+            return this;
+        }
+
+        public Builder webViewDomStorageEnabled(boolean webViewDomStorageEnabled) {
+            this.webViewDomStorageEnabled = webViewDomStorageEnabled;
+            return this;
+        }
+
+        public Builder webViewBuiltInZoomControls(boolean webViewBuiltInZoomControls) {
+            this.webViewBuiltInZoomControls = webViewBuiltInZoomControls;
+            return this;
+        }
+
+        public Builder webViewDisplayZoomControls(boolean webViewDisplayZoomControls) {
+            this.webViewDisplayZoomControls = webViewDisplayZoomControls;
+            return this;
+        }
+
+        public Builder webViewDesktopMode(boolean webViewDesktopMode) {
+            this.webViewDesktopMode = webViewDesktopMode;
+            return this;
+        }
+
         public void show(@StringRes int urlRes) {
             show(activity.getString(urlRes));
         }
@@ -453,6 +588,11 @@ public class FinestWebView {
             this.url = url;
 
             Intent intent = new Intent(activity, FinestWebViewActivity.class);
+
+            if (rtl != null)
+                intent.putExtra("rtl", rtl.booleanValue());
+            if (theme != null)
+                intent.putExtra("theme", theme.intValue());
 
             if (statusBarColor != null)
                 intent.putExtra("statusBarColor", statusBarColor.intValue());
@@ -470,6 +610,17 @@ public class FinestWebView {
                 intent.putExtra("iconPressedColor", iconPressedColor.intValue());
             if (iconSelector != null)
                 intent.putExtra("iconSelector", iconSelector.intValue());
+
+            if (showSwipeRefreshLayout != null)
+                intent.putExtra("showSwipeRefreshLayout", showSwipeRefreshLayout.booleanValue());
+            if (swipeRefreshColor != null)
+                intent.putExtra("swipeRefreshColor", swipeRefreshColor.intValue());
+            if (swipeRefreshColors != null) {
+                int[] colors = new int[swipeRefreshColors.length];
+                for (int i = 0; i < swipeRefreshColors.length; i++)
+                    colors[i] = swipeRefreshColors[i];
+                intent.putExtra("swipeRefreshColors", colors);
+            }
 
             if (showDivider != null)
                 intent.putExtra("showDivider", showDivider.booleanValue());
@@ -525,6 +676,13 @@ public class FinestWebView {
             if (menuTextColor != null)
                 intent.putExtra("menuTextColor", menuTextColor.intValue());
 
+            if (menuTextGravity != null)
+                intent.putExtra("menuTextGravity", menuTextGravity.intValue());
+            if (menuTextPaddingLeft != null)
+                intent.putExtra("menuTextPaddingLeft", menuTextPaddingLeft.floatValue());
+            if (menuTextPaddingRight != null)
+                intent.putExtra("menuTextPaddingRight", menuTextPaddingRight.floatValue());
+
             if (showMenuRefresh != null)
                 intent.putExtra("showMenuRefresh", showMenuRefresh.booleanValue());
             if (stringResRefresh != null)
@@ -551,6 +709,25 @@ public class FinestWebView {
                 intent.putExtra("backPressToClose", backPressToClose.booleanValue());
             if (stringResCopiedToClipboard != null)
                 intent.putExtra("stringResCopiedToClipboard", stringResCopiedToClipboard.intValue());
+
+            if (webViewJavaScriptEnabled != null)
+                intent.putExtra("webViewJavaScriptEnabled", webViewJavaScriptEnabled.booleanValue());
+            if (webViewAppCacheEnabled != null)
+                intent.putExtra("webViewAppCacheEnabled", webViewAppCacheEnabled.booleanValue());
+            if (webViewAllowFileAccess != null)
+                intent.putExtra("webViewAllowFileAccess", webViewAllowFileAccess.booleanValue());
+            if (webViewUseWideViewPort != null)
+                intent.putExtra("webViewUseWideViewPort", webViewUseWideViewPort.booleanValue());
+            if (webViewLoadWithOverviewMode != null)
+                intent.putExtra("webViewLoadWithOverviewMode", webViewLoadWithOverviewMode.booleanValue());
+            if (webViewDomStorageEnabled != null)
+                intent.putExtra("webViewDomStorageEnabled", webViewDomStorageEnabled.booleanValue());
+            if (webViewBuiltInZoomControls != null)
+                intent.putExtra("webViewBuiltInZoomControls", webViewBuiltInZoomControls.booleanValue());
+            if (webViewDisplayZoomControls != null)
+                intent.putExtra("webViewDisplayZoomControls", webViewDisplayZoomControls.booleanValue());
+            if (webViewDesktopMode != null)
+                intent.putExtra("webViewDesktopMode", webViewDesktopMode.booleanValue());
 
             intent.putExtra("url", url);
 
