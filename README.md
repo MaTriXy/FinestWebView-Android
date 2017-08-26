@@ -8,12 +8,13 @@
 
 * Builder pattern
 * Material design & Pre-made icons
+* Webview listeners
 * Custom themes & Custom transition animations
 * Support collapsing toolbar & contextual actionbar
 * SwipeRefreshLayout & Progressbar
 * Device rotation
 * Gradient divider
-* Custom typeface
+* Custom typeface & translation
 * Supports Right to Left
 
 ## Screenshots
@@ -40,7 +41,7 @@ It's also on Google Play:
 
 <a href="https://play.google.com/store/apps/details?id=com.thefinestartist.finestwebview.sample" target="_blank">
   <img alt="Get it on Google Play"
-       src="https://developer.android.com/images/brand/en_generic_rgb_wo_60.png" />
+      src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png" height="60"/>
 </a>
 
 ## Getting started
@@ -51,7 +52,7 @@ Easily reference the library in your Android projects using this dependency in y
 
 ```java
 dependencies {
-    compile 'com.thefinestartist:finestwebview:1.0.7'
+    compile 'com.thefinestartist:finestwebview:1.2.7'
 }
 ```
 
@@ -104,6 +105,30 @@ You can use your own Theme for FinestWebView. If you want to use pre-defined the
 
 ### 2. Builder Options
 
+**Constructors**
+```java
+Builder(@NonNull Activity activity);
+// If you use context instead of activity, FinestWebView enter animation won't work
+Builder(@NonNull Context context);
+```
+
+**Load data or Show url**
+```java
+load(@StringRes int dataRes);
+load(String data);
+load(String data, String mimeType, String encoding);
+
+show(@StringRes int urlRes);
+show(@NonNull String url);
+```
+
+**WebView Listener Options**
+```java
+setWebViewListener(WebViewListener listener);
+addWebViewListener(WebViewListener listener);
+removeWebViewListener(WebViewListener listener);
+```
+
 **Right to Left Options**
 ```java
 rtl(boolean rtl);
@@ -136,6 +161,18 @@ iconDisabledColorRes(@ColorRes int colorRes);
 iconPressedColor(@ColorInt int color);
 iconPressedColorRes(@ColorRes int colorRes);
 iconSelector(@DrawableRes int selectorRes);
+```
+
+**Icon Options**
+```java
+showIconClose(boolean showIconClose);
+disableIconClose(boolean disableIconClose);
+showIconBack(boolean showIconBack);
+disableIconBack(boolean disableIconBack);
+showIconForward(boolean showIconForward);
+disableIconForward(boolean disableIconForward);
+showIconMenu(boolean showIconMenu);
+disableIconMenu(boolean disableIconMenu);
 ```
 
 **SwipeRefreshLayout Options**
@@ -221,6 +258,8 @@ menuTextPaddingRightRes(@DimenRes int menuTextPaddingRight);
 
 showMenuRefresh(boolean showMenuRefresh);
 stringResRefresh(@StringRes int stringResRefresh);
+showMenuFind(boolean showMenuFind);
+stringResFind(@StringRes int stringResFind);
 showMenuShareVia(boolean showMenuShareVia);
 stringResShareVia(@StringRes int stringResShareVia);
 showMenuCopyLink(boolean showMenuCopyLink);
@@ -241,15 +280,49 @@ stringResCopiedToClipboard(@StringRes int stringResCopiedToClipboard);
 
 **WebView Options**
 ```java
-webViewJavaScriptEnabled(boolean webViewJavaScriptEnabled);
-webViewAppCacheEnabled(boolean webViewAppCacheEnabled);
-webViewAllowFileAccess(boolean webViewAllowFileAccess);
-webViewUseWideViewPort(boolean webViewUseWideViewPort);
-webViewLoadWithOverviewMode(boolean webViewLoadWithOverviewMode);
-webViewDomStorageEnabled(boolean webViewDomStorageEnabled);
-webViewDisplayZoomControls(boolean webViewDisplayZoomControls);
-webViewBuiltInZoomControls(boolean webViewBuiltInZoomControls);
-webViewDesktopMode(boolean webViewDesktopMode);
+webViewSupportZoom(boolean webViewSupportZoom);
+webViewMediaPlaybackRequiresUserGesture (boolean webViewMediaPlaybackRequiresUserGesture);
+webViewBuiltInZoomControls (boolean webViewBuiltInZoomControls);
+webViewDisplayZoomControls (boolean webViewDisplayZoomControls);
+webViewAllowFileAccess (boolean webViewAllowFileAccess);
+webViewAllowContentAccess (boolean webViewAllowContentAccess);
+webViewLoadWithOverviewMode (boolean webViewLoadWithOverviewMode);
+webViewSaveFormData (boolean webViewSaveFormData);
+webViewTextZoom (int webViewTextZoom);
+webViewUseWideViewPort (boolean webViewUseWideViewPort);
+webViewSupportMultipleWindows (boolean webViewSupportMultipleWindows);
+webViewLayoutAlgorithm (WebSettings.LayoutAlgorithm webViewLayoutAlgorithm);
+webViewStandardFontFamily (String webViewStandardFontFamily);
+webViewFixedFontFamily (String webViewFixedFontFamily);
+webViewSansSerifFontFamily (String webViewSansSerifFontFamily);
+webViewSerifFontFamily (String webViewSerifFontFamily);
+webViewCursiveFontFamily (String webViewCursiveFontFamily);
+webViewFantasyFontFamily (String webViewFantasyFontFamily);
+webViewMinimumFontSize (int webViewMinimumFontSize);
+webViewMinimumLogicalFontSize (int webViewMinimumLogicalFontSize);
+webViewDefaultFontSize (int webViewDefaultFontSize);
+webViewDefaultFixedFontSize (int webViewDefaultFixedFontSize);
+webViewLoadsImagesAutomatically (boolean webViewLoadsImagesAutomatically);
+webViewBlockNetworkImage (boolean webViewBlockNetworkImage);
+webViewBlockNetworkLoads (boolean webViewBlockNetworkLoads);
+webViewJavaScriptEnabled (boolean webViewJavaScriptEnabled);
+webViewAllowUniversalAccessFromFileURLs (boolean webViewAllowUniversalAccessFromFileURLs);
+webViewAllowFileAccessFromFileURLs (boolean webViewAllowFileAccessFromFileURLs);
+webViewGeolocationDatabasePath (String webViewGeolocationDatabasePath);
+webViewAppCacheEnabled (boolean webViewAppCacheEnabled);
+webViewAppCachePath (String webViewAppCachePath);
+webViewDatabaseEnabled (boolean webViewDatabaseEnabled);
+webViewDomStorageEnabled (boolean webViewDomStorageEnabled);
+webViewGeolocationEnabled (boolean webViewGeolocationEnabled);
+webViewJavaScriptCanOpenWindowsAutomatically (boolean webViewJavaScriptCanOpenWindowsAutomatically);
+webViewDefaultTextEncodingName (String webViewDefaultTextEncodingName);
+webViewUserAgentString (String webViewUserAgentString);
+webViewNeedInitialFocus (boolean webViewNeedInitialFocus);
+webViewCacheMode (int webViewCacheMode);
+webViewMixedContentMode (int webViewMixedContentMode);
+webViewOffscreenPreRaster (boolean webViewOffscreenPreRaster);
+
+injectJavaScript(String injectJavaScript);
 ```
 
 **Builder Pattern**
@@ -273,6 +346,21 @@ new FinestWebView.Builder(activity)
 
 
 ## More customizations
+
+#### WebView Listeners
+FinestWebView has its own listeners to listen event from WebView
+```java
+public void onProgressChanged(int progress);
+public void onReceivedTitle(String title);
+public void onReceivedTouchIconUrl(String url, boolean precomposed);
+
+public void onPageStarted(String url);
+public void onPageFinished(String url);
+public void onLoadResource(String url);
+public void onPageCommitVisible(String url);
+
+public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength)
+```
 
 #### Status Bar Color & Toolbar Color
 
@@ -363,6 +451,21 @@ new FinestWebView.Builder(activity)
     .show(url);
 ```
 
+
+#### Custom Translation
+
+You can use your own String resources to translate strings.
+
+```java
+new FinestWebView.Builder(activity)
+    .stringResCopiedToClipboard(R.string.copied_to_clipboard)
+    .stringResRefresh(R.string.refresh)
+    .stringResShareVia(R.string.share_via)
+    .stringResCopyLink(R.string.copy_link)
+    .stringResOpenWith(R.string.open_with)
+    .show(url);
+```
+
 #### Right to Left
 
 You can support right to left by setting `android:supportsRtl="true"` in `AndroidManifest.xml` or `rtl(true)`.
@@ -378,6 +481,10 @@ new FinestWebView.Builder(activity)
     .rtl(true)
     .show(url);
 ```
+
+#### WebView Desktop Mode
+
+You can force WebView to show in desktop mode by setting `webViewUserAgentString("Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.4) Gecko/20100101 Firefox/4.0")`. 
 
 ## Designer
 
